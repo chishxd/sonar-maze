@@ -1,0 +1,44 @@
+{
+    // --- UI ---
+    "workbench.colorTheme": "Tokyo Night",
+    "editor.fontFamily": "Fira Code, monospace",
+    "editor.fontLigatures": true,
+    "editor.minimap.enabled": false,
+    "editor.renderWhitespace": "boundary",
+    "editor.tabSize": 4,
+    "editor.formatOnSave": true,
+    "files.insertFinalNewline": true,
+    "files.trimTrailingWhitespace": true,
+    "editor.rulers": [100],
+
+    // --- Rust Analyzer --
+    "rust-analyzer.procMacro.enable": true,
+    "rust-analyzer.lens.enable": true,
+    "rust-analyzer.hover.actions.enable": true,
+    "rust-analyzer.diagnostics.enable": true,
+    "rust-analyzer.diagnostics.experimental.enable": true,
+    "rust-analyzer.workspace.symbol.search.scope": "workspace",
+    "rust-analyzer.files.watcher": "client",
+
+    // --- Terminal ---
+    "terminal.integrated.fontFamily": "JetBrainsMono Nerd Font Mono",
+    "terminal.integrated.fontSize": 15,
+    "terminal.integrated.scrollback": 5000,
+    "terminal.integrated.lineHeight": 1.0,
+
+    // --- Code Formatting ---
+    "[rust]": {
+        "editor.defaultFormatter": "rust-lang.rust-analyzer",
+        "editor.formatOnSave": true
+    },
+
+    // --- Misc UX Tweaks ---
+    "editor.inlineSuggest.enabled": true,
+    "editor.quickSuggestions": {
+        "strings": true
+    },
+    "editor.smoothScrolling": true,
+    "files.autoSave": "onWindowChange",
+    "explorer.confirmDelete": false,
+    "explorer.confirmDragAndDrop": false
+}
