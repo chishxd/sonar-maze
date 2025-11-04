@@ -3,5 +3,5 @@
 version = 4
 
 [[package]]
-name = "sonar_maze"
+name = "sonar-maze"
 version = "0.1.0"
