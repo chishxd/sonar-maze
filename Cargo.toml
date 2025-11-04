@@ -5,3 +5,4 @@ edition = "2024"
 license = "MIT"
 
 [dependencies]
+bracket-lib = "0.8.7"
