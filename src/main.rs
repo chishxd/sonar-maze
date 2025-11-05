@@ -53,13 +53,39 @@ impl GameState for State {
 impl State {
     fn player_input(&mut self, ctx: &mut BTerm) {
         if let Some(key) = ctx.key {
-            match key {
-                VirtualKeyCode::Left => self.player_x -= 1,
-                VirtualKeyCode::Right => self.player_x += 1,
-                VirtualKeyCode::Up => self.player_y -= 1,
-                VirtualKeyCode::Down => self.player_y += 1,
+            let delta_x;
+            let delta_y;
 
-                _ => {}
+            match key {
+                VirtualKeyCode::Left => {
+                    delta_x = -1;
+                    delta_y = 0;
+                }
+                VirtualKeyCode::Right => {
+                    delta_x = 1;
+                    delta_y = 0
+                }
+                VirtualKeyCode::Up => {
+                    delta_x = 0;
+                    delta_y = -1;
+                }
+                VirtualKeyCode::Down => {
+                    delta_x = 0;
+                    delta_y = 1;
+                }
+
+                _ => {
+                    return;
+                }
+            }
+
+            let new_x = self.player_x + delta_x;
+            let new_y = self.player_y + delta_y;
+            let index = Map::xy_to_index(new_x, new_y);
+
+            if self.map.tiles[index] != TileType::Wall {
+                self.player_x = new_x;
+                self.player_y = new_y;
             }
         }
     }
