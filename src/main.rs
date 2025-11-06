@@ -91,7 +91,7 @@ impl State {
                 | VirtualKeyCode::Down => {
                     let (delta_x, delta_y) = match key {
                         VirtualKeyCode::Left => (-1, 0),
-                        VirtualKeyCode::Right => (0, 1),
+                        VirtualKeyCode::Right => (1, 0),
                         VirtualKeyCode::Up => (0, -1),
                         VirtualKeyCode::Down => (0, 1),
                         _ => (0, 0),
