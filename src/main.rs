@@ -146,7 +146,7 @@ fn main() -> BError {
         tiles: vec![
             Tile {
                 tile_type: TileType::Floor,
-                last_seen: 0
+                last_seen: -1000
             };
             80 * 50
         ],
