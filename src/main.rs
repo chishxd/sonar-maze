@@ -27,6 +27,7 @@ struct State {
     map: Map,
     player_x: i32,
     player_y: i32,
+    frame_time: i32,
 }
 
 impl GameState for State {
@@ -152,6 +153,7 @@ fn main() -> BError {
             map: new_map,
             player_x: 40,
             player_y: 25,
+            frame_time: 0,
         },
     )
 }
