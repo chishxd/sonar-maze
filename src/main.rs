@@ -67,31 +67,20 @@ impl State {
             let delta_y;
 
             match key {
-                VirtualKeyCode::Left => {
-                    delta_x = -1;
-                    delta_y = 0;
-                }
-                VirtualKeyCode::Right => {
-                    delta_x = 1;
-                    delta_y = 0
-                }
-                VirtualKeyCode::Up => {
-                    delta_x = 0;
-                    delta_y = -1;
-                }
-                VirtualKeyCode::Down => {
-                    delta_x = 0;
-                    delta_y = 1;
-                }
-
-                _ => {
-                    return;
-                }
-            }
-
-            let new_x = self.player_x + delta_x;
-            let new_y = self.player_y + delta_y;
-            let index = Map::xy_to_index(new_x, new_y);
+                VirtualKeyCode::Left
+                | VirtualKeyCode::Right
+                | VirtualKeyCode::Up
+                | VirtualKeyCode::Down => {
+                    let (delta_x, delta_y) = match key {
+                        VirtualKeyCode::Left => (-1, 0),
+                        VirtualKeyCode::Right => (0, 1),
+                        VirtualKeyCode::Up => (0, -1),
+                        VirtualKeyCode::Down => (0, 1),
+                        _ => (0, 0),
+                    };
+                    let new_x = self.player_x + delta_x;
+                    let new_y = self.player_y + delta_y;
+                    let index = Map::xy_to_index(new_x, new_y);
 
             if self.map.tiles[index].tile_type != TileType::Wall {
                 self.player_x = new_x;
