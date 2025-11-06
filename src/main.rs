@@ -1,3 +1,5 @@
+use std::i32;
+
 use bracket_lib::prelude::{Algorithm2D, *};
 
 #[derive(Clone, Copy, PartialEq)]
@@ -104,6 +106,11 @@ impl State {
                     if self.map.tiles[index].tile_type != TileType::Wall {
                         self.player_x = new_x;
                         self.player_y = new_y;
+
+                        let new_idx = Map::xy_to_index(self.player_x, self.player_y);
+                        if self.map.tiles[new_idx].tile_type == TileType::Exit {
+                            ctx.quit();
+                        }
                     }
                 }
                 VirtualKeyCode::Space => {
