@@ -1,14 +1,20 @@
 use bracket_lib::prelude::*;
 
 #[derive(Clone, Copy, PartialEq)]
-
 enum TileType {
     Wall,
     Floor,
 }
 
+#[derive(PartialEq, Copy, Clone)]
+
+struct Tile {
+    tile_type: TileType,
+    revealed: bool,
+}
+
 struct Map {
-    tiles: Vec<TileType>,
+    tiles: Vec<Tile>,
 }
 
 impl Map {
@@ -35,7 +41,7 @@ impl GameState for State {
             let x = y % 80;
             let py = y / 80;
 
-            match tile {
+            match tile.tile_type {
                 TileType::Floor => {
                     ctx.set(x, py, GHOSTWHITE, BLACK, to_cp437(' '));
                 }
@@ -83,7 +89,7 @@ impl State {
             let new_y = self.player_y + delta_y;
             let index = Map::xy_to_index(new_x, new_y);
 
-            if self.map.tiles[index] != TileType::Wall {
+            if self.map.tiles[index].tile_type != TileType::Wall {
                 self.player_x = new_x;
                 self.player_y = new_y;
             }
@@ -97,16 +103,28 @@ fn main() -> BError {
         .build()?;
 
     let mut new_map = Map {
-        tiles: vec![TileType::Floor; 80 * 50],
+        // Start with a vector of default tiles (Floor, not revealed)
+        tiles: vec![
+            Tile {
+                tile_type: TileType::Floor,
+                revealed: false
+            };
+            80 * 50
+        ],
     };
 
     for x in 0..80 {
-        new_map.tiles[Map::xy_to_index(x, 0)] = TileType::Wall;
-        new_map.tiles[Map::xy_to_index(x, 49)] = TileType::Wall;
+        let top_idx = Map::xy_to_index(x, 0);
+        let bottom_idx = Map::xy_to_index(x, 49);
+        new_map.tiles[top_idx].tile_type = TileType::Wall;
+        new_map.tiles[bottom_idx].tile_type = TileType::Wall;
     }
     for y in 0..50 {
-        new_map.tiles[Map::xy_to_index(0, y)] = TileType::Wall;
-        new_map.tiles[Map::xy_to_index(79, y)] = TileType::Wall;
+        let left_idx = Map::xy_to_index(0, y);
+        let right_idx = Map::xy_to_index(79, y);
+
+        new_map.tiles[left_idx].tile_type = TileType::Wall;
+        new_map.tiles[right_idx].tile_type = TileType::Wall;
     }
 
     main_loop(
