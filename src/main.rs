@@ -4,6 +4,7 @@ use bracket_lib::prelude::{Algorithm2D, *};
 enum TileType {
     Wall,
     Floor,
+    Exit,
 }
 
 #[derive(PartialEq, Copy, Clone)]
