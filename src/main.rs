@@ -1,4 +1,4 @@
-use bracket_lib::prelude::*;
+use bracket_lib::prelude::{Algorithm2D, *};
 
 #[derive(Clone, Copy, PartialEq)]
 enum TileType {
@@ -20,6 +20,10 @@ struct Map {
 impl Map {
     fn xy_to_index(x: i32, y: i32) -> usize {
         (y as usize * 80) + x as usize
+    }
+
+    pub fn get_dims(&self) -> Point {
+        Point::new(80, 50)
     }
 }
 
