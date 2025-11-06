@@ -155,6 +155,9 @@ fn main() -> BError {
         new_map.tiles[right_idx].tile_type = TileType::Wall;
     }
 
+    let exit_idx = Map::xy_to_index(78, 48); // FIXME: Change to dynamic value
+    new_map.tiles[exit_idx].tile_type = TileType::Exit;
+
     main_loop(
         context,
         State {
