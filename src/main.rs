@@ -116,7 +116,12 @@ impl State {
 
         for point in fov.iter() {
             let idx = Map::xy_to_index(point.x, point.y);
-            self.map.tiles[idx].last_seen = self.frame_time;
+
+            if self.map.tiles[idx].tile_type == TileType::Exit {
+                self.map.tiles[idx].last_seen = i32::MAX;
+            } else {
+                self.map.tiles[idx].last_seen = self.frame_time;
+            }
         }
     }
 }
