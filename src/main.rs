@@ -52,6 +52,9 @@ impl GameState for State {
                     TileType::Wall => {
                         ctx.set(x, py, RED, BLACK, to_cp437('#'));
                     }
+                    TileType::Exit => {
+                        ctx.set(x, py, MAGENTA, BLACK, to_cp437('>'));
+                    }
                 }
             }
             y += 1;
