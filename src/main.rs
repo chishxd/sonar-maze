@@ -60,6 +60,22 @@ impl GameState for State {
     }
 }
 
+impl BaseMap for Map {
+    fn is_opaque(&self, idx: usize) -> bool {
+        self.tiles[idx as usize].tile_type == TileType::Wall
+    }
+}
+
+impl Algorithm2D for Map {
+    fn dimensions(&self) -> Point {
+        Point::new(80, 50)
+    }
+
+    fn point2d_to_index(&self, pt: Point) -> usize {
+        Map::xy_to_index(pt.x, pt.y)
+    }
+}
+
 impl State {
     fn player_input(&mut self, ctx: &mut BTerm) {
         if let Some(key) = ctx.key {
