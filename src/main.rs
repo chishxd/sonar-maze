@@ -10,7 +10,7 @@ enum TileType {
 
 struct Tile {
     tile_type: TileType,
-    revealed: bool,
+    last_seen: i32,
 }
 
 struct Map {
@@ -36,13 +36,15 @@ impl GameState for State {
 
         ctx.cls();
 
+        const REVEAL_DURATION: i32 = 20;
+
         let mut y = 0;
 
         for tile in self.map.tiles.iter() {
             let x = y % 80;
             let py = y / 80;
 
-            if tile.revealed {
+            if self.frame_time - tile.last_seen < REVEAL_DURATION {
                 match tile.tile_type {
                     TileType::Floor => {
                         ctx.set(x, py, GHOSTWHITE, BLACK, to_cp437(' '));
@@ -54,6 +56,7 @@ impl GameState for State {
             }
             y += 1;
         }
+        self.frame_time += 1;
 
         ctx.set(self.player_x, self.player_y, WHITE, BLACK, to_cp437('@'));
     }
@@ -113,7 +116,7 @@ impl State {
 
         for point in fov.iter() {
             let idx = Map::xy_to_index(point.x, point.y);
-            self.map.tiles[idx].revealed = true;
+            self.map.tiles[idx].last_seen = self.frame_time;
         }
     }
 }
@@ -127,7 +130,7 @@ fn main() -> BError {
         tiles: vec![
             Tile {
                 tile_type: TileType::Floor,
-                revealed: false
+                last_seen: 0
             };
             80 * 50
         ],
