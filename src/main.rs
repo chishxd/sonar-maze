@@ -21,10 +21,6 @@ impl Map {
     fn xy_to_index(x: i32, y: i32) -> usize {
         (y as usize * 80) + x as usize
     }
-
-    pub fn get_dims(&self) -> Point {
-        Point::new(80, 50)
-    }
 }
 
 struct State {
@@ -81,9 +77,6 @@ impl Algorithm2D for Map {
 impl State {
     fn player_input(&mut self, ctx: &mut BTerm) {
         if let Some(key) = ctx.key {
-            let delta_x;
-            let delta_y;
-
             match key {
                 VirtualKeyCode::Left
                 | VirtualKeyCode::Right
@@ -130,7 +123,6 @@ fn main() -> BError {
         .build()?;
 
     let mut new_map = Map {
-        // Start with a vector of default tiles (Floor, not revealed)
         tiles: vec![
             Tile {
                 tile_type: TileType::Floor,
