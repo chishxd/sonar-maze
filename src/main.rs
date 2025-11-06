@@ -45,12 +45,14 @@ impl GameState for State {
             let x = y % 80;
             let py = y / 80;
 
-            match tile.tile_type {
-                TileType::Floor => {
-                    ctx.set(x, py, GHOSTWHITE, BLACK, to_cp437(' '));
-                }
-                TileType::Wall => {
-                    ctx.set(x, py, RED, BLACK, to_cp437('#'));
+            if tile.revealed {
+                match tile.tile_type {
+                    TileType::Floor => {
+                        ctx.set(x, py, GHOSTWHITE, BLACK, to_cp437(' '));
+                    }
+                    TileType::Wall => {
+                        ctx.set(x, py, RED, BLACK, to_cp437('#'));
+                    }
                 }
             }
             y += 1;
