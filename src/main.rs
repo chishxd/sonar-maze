@@ -98,10 +98,26 @@ impl State {
                     let new_y = self.player_y + delta_y;
                     let index = Map::xy_to_index(new_x, new_y);
 
-            if self.map.tiles[index].tile_type != TileType::Wall {
-                self.player_x = new_x;
-                self.player_y = new_y;
+                    if self.map.tiles[index].tile_type != TileType::Wall {
+                        self.player_x = new_x;
+                        self.player_y = new_y;
+                    }
+                }
+                VirtualKeyCode::Space => {
+                    self.reveal_map();
+                }
+                _ => {}
             }
+        }
+    }
+
+    fn reveal_map(&mut self) {
+        let player_pos = Point::new(self.player_x, self.player_y);
+        let fov = field_of_view(player_pos, 8, &self.map);
+
+        for point in fov.iter() {
+            let idx = Map::xy_to_index(point.x, point.y);
+            self.map.tiles[idx].revealed = true;
         }
     }
 }
