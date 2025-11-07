@@ -63,9 +63,11 @@ impl GameState for State {
             }
             y += 1;
         }
-        self.frame_time += 1;
+
+        ctx.print(1, 1, format!("Pings Left: {}", self.pings_left));
 
         ctx.set(self.player_x, self.player_y, WHITE, BLACK, to_cp437('@'));
+        self.frame_time += 1;
     }
 }
 
@@ -116,7 +118,7 @@ impl State {
 
                     let ext_idx = Map::xy_to_index(78, 48); //FIXME: Make ts dynamic
                     if self.pings_left == 0 && self.map.tiles[ext_idx].last_seen != i32::MAX {
-                        ctx.quit(); // GAME OVER
+                        ctx.quit(); // COOKED(Game Over)
                     }
                 }
                 VirtualKeyCode::Space => {
@@ -177,8 +179,8 @@ fn main() -> BError {
         new_map.tiles[right_idx].tile_type = TileType::Wall;
     }
 
-    let exit_idx = Map::xy_to_index(78, 48); // FIXME: Change to dynamic value
-    new_map.tiles[exit_idx].tile_type = TileType::Exit;
+    let ext_idx = Map::xy_to_index(78, 48); // FIXME: Change to dynamic value
+    new_map.tiles[ext_idx].tile_type = TileType::Exit;
 
     main_loop(
         context,
