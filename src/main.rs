@@ -120,7 +120,19 @@ impl GameState for State {
     fn tick(&mut self, ctx: &mut BTerm) {
         match self {
             State::MainMenu => self.main_menu(ctx),
-            State::Playing(playing_state) => self.play(playing_state, ctx),
+            State::Playing(playing_state) => {
+                // Call the static function, which no longer borrows self
+                let next_state = Self::player_input(ctx, playing_state);
+
+                // Draw the current frame
+                Self::play(playing_state, ctx);
+
+                // AFTER drawing, check if we need to change state for the NEXT frame
+                if let Some(new_state) = next_state {
+                    *self = new_state;
+                }
+            }
+
             State::GameOver => self.game_over(ctx),
         }
     }
@@ -156,9 +168,7 @@ impl State {
     }
 
     // The main game logic
-    fn play(&mut self, playing_state: &mut PlayingState, ctx: &mut BTerm) {
-        self.player_input(ctx, playing_state);
-
+    fn play(playing_state: &mut PlayingState, ctx: &mut BTerm) {
         ctx.cls();
 
         const REVEAL_DURATION: i32 = 20;
@@ -248,7 +258,7 @@ impl State {
         State::Playing(playing_state)
     }
 
-    fn player_input(&mut self, ctx: &mut BTerm, playing_state: &mut PlayingState) {
+    fn player_input(ctx: &mut BTerm, playing_state: &mut PlayingState) -> Option<State> {
         if let Some(key) = ctx.key {
             match key {
                 VirtualKeyCode::Left
@@ -273,7 +283,7 @@ impl State {
                         let new_idx =
                             Map::xy_to_index(playing_state.player_x, playing_state.player_y);
                         if playing_state.map.tiles[new_idx].tile_type == TileType::Exit {
-                            ctx.quit(); //The Win Condition
+                            return Some(State::GameOver); //The Win Condition
                         }
                     }
 
@@ -281,12 +291,12 @@ impl State {
                     if playing_state.pings_left == 0
                         && playing_state.map.tiles[ext_idx].last_seen != i32::MAX
                     {
-                        ctx.quit(); // COOKED(Game Over)
+                        return Some(State::GameOver); // COOKED(Game Over)
                     }
                 }
                 VirtualKeyCode::Space => {
                     if playing_state.pings_left > 0 {
-                        self.reveal_map(playing_state);
+                        Self::reveal_map(playing_state);
                         playing_state.pings_left -= 1;
                     } else {
                         // TODO: Add audio or smth
@@ -295,9 +305,10 @@ impl State {
                 _ => {}
             }
         }
+        None
     }
 
-    fn reveal_map(&mut self, playing_state: &mut PlayingState) {
+    fn reveal_map(playing_state: &mut PlayingState) {
         let player_pos = Point::new(playing_state.player_x, playing_state.player_y);
         let fov = field_of_view(player_pos, 8, &playing_state.map);
 
