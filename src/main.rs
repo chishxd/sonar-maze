@@ -26,6 +26,30 @@ impl Map {
     }
 }
 
+struct MapBuilder {
+    map: Map,
+    player_start: Point,
+    exit_pos: Point,
+}
+
+impl MapBuilder {
+    fn new() -> Self {
+        let mb = Self {
+            map: Map {
+                tiles: vec![
+                    Tile {
+                        tile_type: TileType::Wall,
+                        last_seen: -1000
+                    };
+                    80 * 50
+                ],
+            },
+            player_start: Point::zero(), // FIXME: Placeholder
+            exit_pos: Point::zero(),     // FIXME: Placeholder
+        };
+    }
+}
+
 struct PlayingState {
     map: Map,
     player_x: i32,
@@ -158,6 +182,8 @@ impl State {
 
         let ext_idx = Map::xy_to_index(78, 48); // FIXME: Change to dynamic value
         new_map.tiles[ext_idx].tile_type = TileType::Exit;
+
+        let mb = MapBuilder::new();
 
         let playing_state = PlayingState {
             map: new_map,
