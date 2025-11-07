@@ -114,6 +114,7 @@ enum State {
     MainMenu,
     Playing(PlayingState),
     GameOver,
+    Victory,
 }
 
 impl GameState for State {
@@ -134,6 +135,7 @@ impl GameState for State {
             }
 
             State::GameOver => self.game_over(ctx),
+            State::Victory => self.victory(ctx),
         }
     }
 }
@@ -217,6 +219,16 @@ impl State {
         }
     }
 
+    fn victory(&mut self, ctx: &mut BTerm) {
+        ctx.cls();
+        ctx.print_centered(5, "You have escaped the darkness!");
+        ctx.print_centered(8, "Press ENTER to play again");
+
+        if let Some(VirtualKeyCode::Return) = ctx.key {
+            *self = State::new_game();
+        }
+    }
+
     fn new_game() -> State {
         let mut new_map = Map {
             tiles: vec![
@@ -283,7 +295,7 @@ impl State {
                         let new_idx =
                             Map::xy_to_index(playing_state.player_x, playing_state.player_y);
                         if playing_state.map.tiles[new_idx].tile_type == TileType::Exit {
-                            return Some(State::GameOver); //The Win Condition
+                            return Some(State::Victory); //The Win Condition
                         }
                     }
 
