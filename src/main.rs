@@ -157,7 +157,7 @@ impl State {
 
     // The main game logic
     fn play(&mut self, playing_state: &mut PlayingState, ctx: &mut BTerm) {
-        self.player_input(ctx);
+        self.player_input(ctx, playing_state);
 
         ctx.cls();
 
@@ -235,18 +235,20 @@ impl State {
         let ext_idx = Map::xy_to_index(78, 48); // FIXME: Change to dynamic value
         new_map.tiles[ext_idx].tile_type = TileType::Exit;
 
+        let mb = MapBuilder::new();
+
         let playing_state = PlayingState {
-            map: new_map,
-            player_x: 40,
-            player_y: 25,
+            map: mb.map,
+            player_x: mb.player_start.x,
+            player_y: mb.player_start.y,
             frame_time: 0,
-            pings_left: 10,
+            pings_left: 15,
         };
 
         State::Playing(playing_state)
     }
 
-    fn player_input(&mut self, ctx: &mut BTerm) {
+    fn player_input(&mut self, ctx: &mut BTerm, playing_state: &mut PlayingState) {
         if let Some(key) = ctx.key {
             match key {
                 VirtualKeyCode::Left
@@ -260,29 +262,32 @@ impl State {
                         VirtualKeyCode::Down => (0, 1),
                         _ => (0, 0),
                     };
-                    let new_x = self.player_x + delta_x;
-                    let new_y = self.player_y + delta_y;
+                    let new_x = playing_state.player_x + delta_x;
+                    let new_y = playing_state.player_y + delta_y;
                     let index = Map::xy_to_index(new_x, new_y);
 
-                    if self.map.tiles[index].tile_type != TileType::Wall {
-                        self.player_x = new_x;
-                        self.player_y = new_y;
+                    if playing_state.map.tiles[index].tile_type != TileType::Wall {
+                        playing_state.player_x = new_x;
+                        playing_state.player_y = new_y;
 
-                        let new_idx = Map::xy_to_index(self.player_x, self.player_y);
-                        if self.map.tiles[new_idx].tile_type == TileType::Exit {
+                        let new_idx =
+                            Map::xy_to_index(playing_state.player_x, playing_state.player_y);
+                        if playing_state.map.tiles[new_idx].tile_type == TileType::Exit {
                             ctx.quit(); //The Win Condition
                         }
                     }
 
                     let ext_idx = Map::xy_to_index(78, 48); //FIXME: Make ts dynamic
-                    if self.pings_left == 0 && self.map.tiles[ext_idx].last_seen != i32::MAX {
+                    if playing_state.pings_left == 0
+                        && playing_state.map.tiles[ext_idx].last_seen != i32::MAX
+                    {
                         ctx.quit(); // COOKED(Game Over)
                     }
                 }
                 VirtualKeyCode::Space => {
-                    if self.pings_left > 0 {
-                        self.reveal_map();
-                        self.pings_left -= 1;
+                    if playing_state.pings_left > 0 {
+                        self.reveal_map(playing_state);
+                        playing_state.pings_left -= 1;
                     } else {
                         // TODO: Add audio or smth
                     }
@@ -292,17 +297,17 @@ impl State {
         }
     }
 
-    fn reveal_map(&mut self) {
-        let player_pos = Point::new(self.player_x, self.player_y);
-        let fov = field_of_view(player_pos, 8, &self.map);
+    fn reveal_map(&mut self, playing_state: &mut PlayingState) {
+        let player_pos = Point::new(playing_state.player_x, playing_state.player_y);
+        let fov = field_of_view(player_pos, 8, &playing_state.map);
 
         for point in fov.iter() {
             let idx = Map::xy_to_index(point.x, point.y);
 
-            if self.map.tiles[idx].tile_type == TileType::Exit {
-                self.map.tiles[idx].last_seen = i32::MAX;
+            if playing_state.map.tiles[idx].tile_type == TileType::Exit {
+                playing_state.map.tiles[idx].last_seen = i32::MAX;
             } else {
-                self.map.tiles[idx].last_seen = self.frame_time;
+                playing_state.map.tiles[idx].last_seen = playing_state.frame_time;
             }
         }
     }
