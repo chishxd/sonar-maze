@@ -31,6 +31,7 @@ struct State {
     player_x: i32,
     player_y: i32,
     frame_time: i32,
+    pings_left: i32,
 }
 
 impl GameState for State {
@@ -109,12 +110,22 @@ impl State {
 
                         let new_idx = Map::xy_to_index(self.player_x, self.player_y);
                         if self.map.tiles[new_idx].tile_type == TileType::Exit {
-                            ctx.quit();
+                            ctx.quit(); //The Win Condition
                         }
+                    }
+
+                    let ext_idx = Map::xy_to_index(78, 48); //FIXME: Make ts dynamic
+                    if self.pings_left == 0 && self.map.tiles[ext_idx].last_seen != i32::MAX {
+                        ctx.quit(); // GAME OVER
                     }
                 }
                 VirtualKeyCode::Space => {
-                    self.reveal_map();
+                    if self.pings_left > 0 {
+                        self.reveal_map();
+                        self.pings_left -= 1;
+                    } else {
+                        // TODO: Add audio or smth
+                    }
                 }
                 _ => {}
             }
@@ -176,6 +187,7 @@ fn main() -> BError {
             player_x: 40,
             player_y: 25,
             frame_time: 0,
+            pings_left: 10,
         },
     )
 }
