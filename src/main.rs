@@ -67,6 +67,19 @@ impl Algorithm2D for Map {
 }
 
 impl State {
+    // The Main menu
+    fn main_menu(&mut self, ctx: &mut BTerm) {
+        ctx.cls();
+
+        ctx.print_centered(5, "Welcome to Sonar Maze");
+        ctx.print_centered(8, "Please press ENTER to start the game");
+
+        if let Some(VirtualKeyCode::Return) = ctx.key {
+            *self = State::new_game();
+        }
+    }
+
+    // The main game logic
     fn play(&mut self, playing_state: &mut PlayingState, ctx: &mut BTerm) {
         self.player_input(ctx);
 
@@ -106,6 +119,21 @@ impl State {
             to_cp437('@'),
         );
         playing_state.frame_time += 1;
+    }
+
+    fn game_over(&mut self, ctx: &mut BTerm) {
+        ctx.cls();
+        ctx.print_centered(5, "You are lost in the dark");
+        ctx.print_centered(8, "Press ENTER to try again");
+
+        if let Some(VirtualKeyCode::Return) = ctx.key {
+            *self = State::new_game();
+        }
+    }
+
+    fn new_game() -> State {
+        // TODO: Implement procedural generation here!
+        State::MainMenu
     }
 
     fn player_input(&mut self, ctx: &mut BTerm) {
