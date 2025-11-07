@@ -132,8 +132,42 @@ impl State {
     }
 
     fn new_game() -> State {
-        // TODO: Implement procedural generation here!
-        State::MainMenu
+        let mut new_map = Map {
+            tiles: vec![
+                Tile {
+                    tile_type: TileType::Floor,
+                    last_seen: -1000
+                };
+                80 * 50
+            ],
+        };
+
+        for x in 0..80 {
+            let top_idx = Map::xy_to_index(x, 0);
+            let bottom_idx = Map::xy_to_index(x, 49);
+            new_map.tiles[top_idx].tile_type = TileType::Wall;
+            new_map.tiles[bottom_idx].tile_type = TileType::Wall;
+        }
+        for y in 0..50 {
+            let left_idx = Map::xy_to_index(0, y);
+            let right_idx = Map::xy_to_index(79, y);
+
+            new_map.tiles[left_idx].tile_type = TileType::Wall;
+            new_map.tiles[right_idx].tile_type = TileType::Wall;
+        }
+
+        let ext_idx = Map::xy_to_index(78, 48); // FIXME: Change to dynamic value
+        new_map.tiles[ext_idx].tile_type = TileType::Exit;
+
+        let playing_state = PlayingState {
+            map: new_map,
+            player_x: 40,
+            player_y: 25,
+            frame_time: 0,
+            pings_left: 10,
+        };
+
+        State::Playing(playing_state)
     }
 
     fn player_input(&mut self, ctx: &mut BTerm) {
@@ -203,41 +237,5 @@ fn main() -> BError {
         .with_title("The Sonar Maze")
         .build()?;
 
-    let mut new_map = Map {
-        tiles: vec![
-            Tile {
-                tile_type: TileType::Floor,
-                last_seen: -1000
-            };
-            80 * 50
-        ],
-    };
-
-    for x in 0..80 {
-        let top_idx = Map::xy_to_index(x, 0);
-        let bottom_idx = Map::xy_to_index(x, 49);
-        new_map.tiles[top_idx].tile_type = TileType::Wall;
-        new_map.tiles[bottom_idx].tile_type = TileType::Wall;
-    }
-    for y in 0..50 {
-        let left_idx = Map::xy_to_index(0, y);
-        let right_idx = Map::xy_to_index(79, y);
-
-        new_map.tiles[left_idx].tile_type = TileType::Wall;
-        new_map.tiles[right_idx].tile_type = TileType::Wall;
-    }
-
-    let ext_idx = Map::xy_to_index(78, 48); // FIXME: Change to dynamic value
-    new_map.tiles[ext_idx].tile_type = TileType::Exit;
-
-    main_loop(
-        context,
-        State {
-            map: new_map,
-            player_x: 40,
-            player_y: 25,
-            frame_time: 0,
-            pings_left: 10,
-        },
-    )
+    main_loop(context, State::MainMenu)
 }
