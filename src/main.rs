@@ -302,6 +302,14 @@ impl State {
                         // TODO: Add audio or smth
                     }
                 }
+
+                // The cheat code to reveal map
+                VirtualKeyCode::Tab => {
+                    for tile in playing_state.map.tiles.iter_mut() {
+                        tile.last_seen = i32::MAX;
+                    }
+                }
+
                 _ => {}
             }
         }
