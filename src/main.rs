@@ -2,6 +2,9 @@ use std::i32;
 
 use bracket_lib::prelude::{Algorithm2D, DistanceAlg, *};
 
+const SCREEN_WIDTH: i32 = 40;
+const SCREEN_HEIGHT: i32 = 25;
+
 #[derive(Clone, Copy, PartialEq)]
 enum TileType {
     Wall,
@@ -22,7 +25,7 @@ struct Map {
 
 impl Map {
     fn xy_to_index(x: i32, y: i32) -> usize {
-        (y as usize * 80) + x as usize
+        (y as usize * SCREEN_WIDTH as usize) + x as usize
     }
 }
 
@@ -41,7 +44,7 @@ impl MapBuilder {
                         tile_type: TileType::Wall,
                         last_seen: -1000
                     };
-                    80 * 50
+                    SCREEN_WIDTH as usize * SCREEN_HEIGHT as usize
                 ],
             },
             player_start: Point::zero(), // FIXME: Placeholder
@@ -50,11 +53,11 @@ impl MapBuilder {
 
         // The Drunkard Walk
         let mut rng = RandomNumberGenerator::new();
-        let mut drunkard_pos = Point::new(40, 25);
+        let mut drunkard_pos = Point::new(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
         let mut floor_count = 0;
 
         // Loop until 40% of map is Floors...
-        while floor_count < (80 * 50) / 100 * 40 {
+        while floor_count < (SCREEN_WIDTH * SCREEN_HEIGHT) / 100 * 40 {
             let idx = Map::xy_to_index(drunkard_pos.x, drunkard_pos.y);
             if mb.map.tiles[idx].tile_type == TileType::Wall {
                 mb.map.tiles[idx].tile_type = TileType::Floor;
@@ -70,10 +73,10 @@ impl MapBuilder {
             }
 
             // Prevent the drunkard from leaving the map
-            drunkard_pos.x = drunkard_pos.x.max(1).min(78);
-            drunkard_pos.y = drunkard_pos.y.max(1).min(48);
+            drunkard_pos.x = drunkard_pos.x.max(1).min(SCREEN_WIDTH - 2);
+            drunkard_pos.y = drunkard_pos.y.max(1).min(SCREEN_HEIGHT - 2);
         }
-        mb.player_start = Point::new(40, 25);
+        mb.player_start = Point::new(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
         mb.exit_pos = mb.find_farthest_exit();
         let exit_idx = Map::xy_to_index(mb.exit_pos.x, mb.exit_pos.y);
         mb.map.tiles[exit_idx].tile_type = TileType::Exit;
@@ -87,8 +90,8 @@ impl MapBuilder {
 
         for (idx, tile) in self.map.tiles.iter().enumerate() {
             if tile.tile_type == TileType::Floor {
-                let x = idx % 80;
-                let y = idx / 80;
+                let x = idx % SCREEN_WIDTH as usize;
+                let y = idx / SCREEN_WIDTH as usize;
                 let pos = Point::new(x, y);
 
                 let distance = DistanceAlg::Pythagoras.distance2d(pos, self.player_start);
@@ -150,7 +153,7 @@ impl BaseMap for Map {
 
 impl Algorithm2D for Map {
     fn dimensions(&self) -> Point {
-        Point::new(80, 50)
+        Point::new(SCREEN_WIDTH, SCREEN_HEIGHT)
     }
 
     fn point2d_to_index(&self, pt: Point) -> usize {
@@ -180,8 +183,8 @@ impl State {
         let mut y = 0;
 
         for tile in playing_state.map.tiles.iter() {
-            let x = y % 80;
-            let py = y / 80;
+            let x = y % SCREEN_WIDTH;
+            let py = y / SCREEN_WIDTH;
 
             if playing_state.frame_time - tile.last_seen < REVEAL_DURATION {
                 match tile.tile_type {
@@ -322,8 +325,11 @@ impl State {
 }
 
 fn main() -> BError {
-    let context = BTermBuilder::simple80x50()
-        .with_title("The Sonar Maze")
+    let context = BTermBuilder::new()
+        .with_title("Sonar Maze")
+        .with_resource_path("resources/")
+        .with_font("vga8x16.png", 8, 16)
+        .with_simple_console(SCREEN_WIDTH, SCREEN_HEIGHT, "vga8x16.png")
         .build()?;
 
     main_loop(context, State::MainMenu)
