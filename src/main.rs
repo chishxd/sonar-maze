@@ -26,7 +26,7 @@ impl Map {
     }
 }
 
-struct State {
+struct PlayingState {
     map: Map,
     player_x: i32,
     player_y: i32,
@@ -34,41 +34,14 @@ struct State {
     pings_left: i32,
 }
 
+enum State {
+    MainMenu,
+    Playing(PlayingState),
+    GameOver,
+}
+
 impl GameState for State {
-    fn tick(&mut self, ctx: &mut BTerm) {
-        self.player_input(ctx);
-
-        ctx.cls();
-
-        const REVEAL_DURATION: i32 = 20;
-
-        let mut y = 0;
-
-        for tile in self.map.tiles.iter() {
-            let x = y % 80;
-            let py = y / 80;
-
-            if self.frame_time - tile.last_seen < REVEAL_DURATION {
-                match tile.tile_type {
-                    TileType::Floor => {
-                        ctx.set(x, py, GHOSTWHITE, BLACK, to_cp437(' '));
-                    }
-                    TileType::Wall => {
-                        ctx.set(x, py, RED, BLACK, to_cp437('#'));
-                    }
-                    TileType::Exit => {
-                        ctx.set(x, py, MAGENTA, BLACK, to_cp437('>'));
-                    }
-                }
-            }
-            y += 1;
-        }
-
-        ctx.print(1, 1, format!("Pings Left: {}", self.pings_left));
-
-        ctx.set(self.player_x, self.player_y, WHITE, BLACK, to_cp437('@'));
-        self.frame_time += 1;
-    }
+    fn tick(&mut self, ctx: &mut BTerm) {}
 }
 
 impl BaseMap for Map {
@@ -88,6 +61,47 @@ impl Algorithm2D for Map {
 }
 
 impl State {
+    fn play(&mut self, playing_state: &mut PlayingState, ctx: &mut BTerm) {
+        self.player_input(ctx);
+
+        ctx.cls();
+
+        const REVEAL_DURATION: i32 = 20;
+
+        let mut y = 0;
+
+        for tile in playing_state.map.tiles.iter() {
+            let x = y % 80;
+            let py = y / 80;
+
+            if playing_state.frame_time - tile.last_seen < REVEAL_DURATION {
+                match tile.tile_type {
+                    TileType::Floor => {
+                        ctx.set(x, py, GHOSTWHITE, BLACK, to_cp437(' '));
+                    }
+                    TileType::Wall => {
+                        ctx.set(x, py, RED, BLACK, to_cp437('#'));
+                    }
+                    TileType::Exit => {
+                        ctx.set(x, py, MAGENTA, BLACK, to_cp437('>'));
+                    }
+                }
+            }
+            y += 1;
+        }
+
+        ctx.print(1, 1, format!("Pings Left: {}", playing_state.pings_left));
+
+        ctx.set(
+            playing_state.player_x,
+            playing_state.player_y,
+            WHITE,
+            BLACK,
+            to_cp437('@'),
+        );
+        playing_state.frame_time += 1;
+    }
+
     fn player_input(&mut self, ctx: &mut BTerm) {
         if let Some(key) = ctx.key {
             match key {
