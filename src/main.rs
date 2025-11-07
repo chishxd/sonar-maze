@@ -41,7 +41,13 @@ enum State {
 }
 
 impl GameState for State {
-    fn tick(&mut self, ctx: &mut BTerm) {}
+    fn tick(&mut self, ctx: &mut BTerm) {
+        match self {
+            State::MainMenu => self.main_menu(ctx),
+            State::Playing(playing_state) => self.play(playing_state, ctx),
+            State::GameOver => self.game_over(ctx),
+        }
+    }
 }
 
 impl BaseMap for Map {
