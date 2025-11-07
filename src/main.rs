@@ -1,6 +1,6 @@
 use std::i32;
 
-use bracket_lib::prelude::{Algorithm2D, *};
+use bracket_lib::prelude::{Algorithm2D, DistanceAlg, *};
 
 #[derive(Clone, Copy, PartialEq)]
 enum TileType {
@@ -34,7 +34,7 @@ struct MapBuilder {
 
 impl MapBuilder {
     fn new() -> Self {
-        let mb = Self {
+        let mut mb = Self {
             map: Map {
                 tiles: vec![
                     Tile {
@@ -47,6 +47,58 @@ impl MapBuilder {
             player_start: Point::zero(), // FIXME: Placeholder
             exit_pos: Point::zero(),     // FIXME: Placeholder
         };
+
+        // The Drunkard Walk
+        let mut rng = RandomNumberGenerator::new();
+        let mut drunkard_pos = Point::new(40, 25);
+        let mut floor_count = 0;
+
+        // Loop until 40% of map is Floors...
+        while floor_count < (80 * 50) / 100 * 40 {
+            let idx = Map::xy_to_index(drunkard_pos.x, drunkard_pos.y);
+            if mb.map.tiles[idx].tile_type == TileType::Wall {
+                mb.map.tiles[idx].tile_type = TileType::Floor;
+                floor_count += 1;
+            }
+
+            // Move the drunkard
+            match rng.range(0, 4) {
+                0 => drunkard_pos.x -= 1,
+                1 => drunkard_pos.x += 1,
+                2 => drunkard_pos.y -= 1,
+                _ => drunkard_pos.y += 1,
+            }
+
+            // Prevent the drunkard from leaving the map
+            drunkard_pos.x = drunkard_pos.x.max(1).min(78);
+            drunkard_pos.y = drunkard_pos.y.max(1).min(48);
+        }
+        mb.player_start = Point::new(40, 25);
+        mb.exit_pos = mb.find_farthest_exit();
+        let exit_idx = Map::xy_to_index(mb.exit_pos.x, mb.exit_pos.y);
+        mb.map.tiles[exit_idx].tile_type = TileType::Exit;
+
+        mb
+    }
+
+    fn find_farthest_exit(&self) -> Point {
+        let mut farthest_distance = 0.0;
+        let mut farthest_pos = Point::zero();
+
+        for (idx, tile) in self.map.tiles.iter().enumerate() {
+            if tile.tile_type == TileType::Floor {
+                let x = idx % 80;
+                let y = idx / 80;
+                let pos = Point::new(x, y);
+
+                let distance = DistanceAlg::Pythagoras.distance2d(pos, self.player_start);
+                if distance > farthest_distance {
+                    farthest_distance = distance;
+                    farthest_pos = pos;
+                }
+            }
+        }
+        farthest_pos
     }
 }
 
@@ -182,8 +234,6 @@ impl State {
 
         let ext_idx = Map::xy_to_index(78, 48); // FIXME: Change to dynamic value
         new_map.tiles[ext_idx].tile_type = TileType::Exit;
-
-        let mb = MapBuilder::new();
 
         let playing_state = PlayingState {
             map: new_map,
