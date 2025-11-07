@@ -106,6 +106,8 @@ struct PlayingState {
     map: Map,
     player_x: i32,
     player_y: i32,
+    exit_x: i32,
+    exit_y: i32,
     frame_time: i32,
     pings_left: i32,
 }
@@ -230,39 +232,14 @@ impl State {
     }
 
     fn new_game() -> State {
-        let mut new_map = Map {
-            tiles: vec![
-                Tile {
-                    tile_type: TileType::Floor,
-                    last_seen: -1000
-                };
-                80 * 50
-            ],
-        };
-
-        for x in 0..80 {
-            let top_idx = Map::xy_to_index(x, 0);
-            let bottom_idx = Map::xy_to_index(x, 49);
-            new_map.tiles[top_idx].tile_type = TileType::Wall;
-            new_map.tiles[bottom_idx].tile_type = TileType::Wall;
-        }
-        for y in 0..50 {
-            let left_idx = Map::xy_to_index(0, y);
-            let right_idx = Map::xy_to_index(79, y);
-
-            new_map.tiles[left_idx].tile_type = TileType::Wall;
-            new_map.tiles[right_idx].tile_type = TileType::Wall;
-        }
-
-        let ext_idx = Map::xy_to_index(78, 48); // FIXME: Change to dynamic value
-        new_map.tiles[ext_idx].tile_type = TileType::Exit;
-
         let mb = MapBuilder::new();
 
         let playing_state = PlayingState {
             map: mb.map,
             player_x: mb.player_start.x,
             player_y: mb.player_start.y,
+            exit_x: mb.exit_pos.x,
+            exit_y: mb.exit_pos.y,
             frame_time: 0,
             pings_left: 15,
         };
@@ -299,7 +276,7 @@ impl State {
                         }
                     }
 
-                    let ext_idx = Map::xy_to_index(78, 48); //FIXME: Make ts dynamic
+                    let ext_idx = Map::xy_to_index(playing_state.exit_x, playing_state.exit_y);
                     if playing_state.pings_left == 0
                         && playing_state.map.tiles[ext_idx].last_seen != i32::MAX
                     {
