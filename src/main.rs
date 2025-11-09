@@ -117,6 +117,20 @@ impl MapBuilder {
             mb.apply_vertical_tunnel(center_a.y, center_b.y, center_b.x);
         }
 
+        for _ in 0..3 {
+            let room_a_idx = rng.range(0, mb.rooms.len());
+            let room_b_idx = rng.range(0, mb.rooms.len());
+
+            if room_a_idx != room_b_idx {
+                let center_a = mb.rooms[room_a_idx].center();
+                let center_b = mb.rooms[room_b_idx].center();
+
+                mb.apply_horizontal_tunnel(center_a.x, center_b.x, center_a.y);
+                mb.apply_vertical_tunnel(center_a.y, center_b.y, center_b.x);
+            }
+        }
+
+        // Placing exit, player's staring position and stuff
         mb.player_start = mb.rooms[0].center();
         mb.exit_pos = mb.rooms.last().unwrap().center();
         let exit_idx = Map::xy_to_index(mb.exit_pos.x, mb.exit_pos.y);
@@ -162,26 +176,6 @@ impl MapBuilder {
             }
         }
     }
-
-    // fn find_farthest_exit(&self) -> Point {
-    //     let mut farthest_distance = 0.0;
-    //     let mut farthest_pos = Point::zero();
-
-    //     for (idx, tile) in self.map.tiles.iter().enumerate() {
-    //         if tile.tile_type == TileType::Floor {
-    //             let x = idx % SCREEN_WIDTH as usize;
-    //             let y = idx / SCREEN_WIDTH as usize;
-    //             let pos = Point::new(x, y);
-
-    //             let distance = DistanceAlg::Pythagoras.distance2d(pos, self.player_start);
-    //             if distance > farthest_distance {
-    //                 farthest_distance = distance;
-    //                 farthest_pos = pos;
-    //             }
-    //         }
-    //     }
-    //     farthest_pos
-    // }
 }
 
 struct PlayingState {
