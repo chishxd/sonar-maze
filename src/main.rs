@@ -119,6 +119,21 @@ impl MapBuilder {
             // mb.apply_vertical_tunnel(center_a.y, center_b.y, center_b.x);
         }
 
+        mb.player_start = mb.rooms[0].center();
+        mb.exit_pos = mb.rooms.last().unwrap().center();
+        let exit_idx = Map::xy_to_index(mb.exit_pos.x, mb.exit_pos.y);
+        mb.map.tiles[exit_idx].tile_type = TileType::Exit;
+
+        const NUM_PICKUPS: i32 = 5;
+
+        for _ in 0..NUM_PICKUPS {
+            let x = rng.range(1, SCREEN_WIDTH - 2);
+            let y = rng.range(1, SCREEN_HEIGHT - 2);
+            let idx = Map::xy_to_index(x, y);
+            if mb.map.tiles[idx].tile_type == TileType::Floor {
+                mb.map.tiles[idx].tile_type = TileType::Pickup;
+            }
+        }
         mb
     }
 
