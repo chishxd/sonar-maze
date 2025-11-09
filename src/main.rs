@@ -37,6 +37,7 @@ struct MapBuilder {
     exit_pos: Point,
 }
 
+#[derive(Clone, Copy, PartialEq)]
 struct Rect {
     x1: i32,
     y1: i32,
@@ -103,6 +104,19 @@ impl MapBuilder {
                 // mb.apply_room_to_map();
                 mb.rooms.push(new_rooms);
             }
+        }
+
+        // Connect Rooms
+        mb.rooms.sort_by(|a, b| a.center().x.cmp(&b.center().x));
+        for i in 0..mb.rooms.len() - 1 {
+            let room_a = mb.rooms[i];
+            let room_b = mb.rooms[i + 1];
+            let center_a = mb.rooms[i].center();
+            let center_b = mb.rooms[i + 1].center();
+
+            // TODO: implement apply_horizontal and vertical_tunnels func
+            // mb.apply_horizontal_tunnel(center_a.x, center_b.x, center_a.y);
+            // mb.apply_vertical_tunnel(center_a.y, center_b.y, center_b.x);
         }
 
         mb
