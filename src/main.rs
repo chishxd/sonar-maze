@@ -335,8 +335,15 @@ impl State {
     fn main_menu(&mut self, ctx: &mut BTerm) {
         ctx.cls();
 
-        ctx.print_centered(5, "Welcome to Sonar Maze");
-        ctx.print_centered(8, "Please press ENTER to start the game");
+        ctx.print_centered(5, "SONAR MAZE");
+
+        ctx.print_centered(10, "Use ARROW KEYS to move");
+        ctx.print_centered(12, "Press SPACE to ping");
+
+        ctx.print_centered(18, "Press ENTER to begin");
+
+        // The Credits (gotta have 'em)
+        ctx.print(2, 23, "By Chish");
 
         if let Some(VirtualKeyCode::Return) = ctx.key {
             *self = State::new_game();
