@@ -200,20 +200,47 @@ impl MapBuilder {
         }
 
         // Place exit LAST so it doesn't get overwritten
+        // Find the farthest reachable floor tile by actual path distance
         let mut max_dist = 0;
-        let mut farthest_idx = mb.rooms.len() - 1;
+        let mut farthest_pos = mb.rooms[mb.rooms.len() - 1].center();
+
+        let mut candidate_positions = Vec::new();
 
         for (idx, room) in mb.rooms.iter().enumerate() {
-            let center = room.center();
-            let dist = DistanceAlg::Pythagoras.distance2d(mb.player_start, center) as i32;
-
-            if dist > max_dist {
-                max_dist = dist;
-                farthest_idx = idx;
+            if idx > 0 {
+                candidate_positions.push(room.center());
             }
         }
 
-        mb.exit_pos = mb.rooms[farthest_idx].center();
+        for _ in 0..50 {
+            let x = rng.range(1, SCREEN_WIDTH - 1);
+            let y = rng.range(1, SCREEN_HEIGHT - 1);
+            let idx = Map::xy_to_index(x, y);
+            // Calculate manhattan distance
+            let dist_to_start = (x - mb.player_start.x).abs() + (y - mb.player_start.y).abs();
+            if mb.map.tiles[idx].tile_type == TileType::Floor && dist_to_start > 5 {
+                candidate_positions.push(Point::new(x, y));
+            }
+        }
+
+        for pos in candidate_positions.iter() {
+            let path = a_star_search(
+                Map::xy_to_index(mb.player_start.x, mb.player_start.y),
+                Map::xy_to_index(pos.x, pos.y),
+                &mb.map,
+            );
+
+            if path.success {
+                let dist = path.steps.len() as i32;
+
+                if dist > max_dist && dist > 10 {
+                    max_dist = dist;
+                    farthest_pos = *pos;
+                }
+            }
+        }
+
+        mb.exit_pos = farthest_pos;
         let exit_idx = Map::xy_to_index(mb.exit_pos.x, mb.exit_pos.y);
         mb.map.tiles[exit_idx].tile_type = TileType::Exit;
 
