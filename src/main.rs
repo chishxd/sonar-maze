@@ -162,26 +162,10 @@ impl MapBuilder {
 
             worm_pos.x = worm_pos.x.max(1).min(SCREEN_WIDTH - 2);
         }
-        // Placing exit, player's staring position and stuff
+        // Placing player start position
         mb.player_start = mb.rooms[0].center();
 
-        let mut max_dist = 0;
-        let mut farthest_idx = mb.rooms.len() - 1;
-
-        for (idx, room) in mb.rooms.iter().enumerate() {
-            let center = room.center();
-            let dist = DistanceAlg::Pythagoras.distance2d(mb.player_start, center) as i32;
-
-            if dist > max_dist {
-                max_dist = dist;
-                farthest_idx = idx;
-            }
-        }
-
-        mb.exit_pos = mb.rooms[farthest_idx].center();
-        let exit_idx = Map::xy_to_index(mb.exit_pos.x, mb.exit_pos.y);
-        mb.map.tiles[exit_idx].tile_type = TileType::Exit;
-
+        // Add pickups first
         const NUM_PICKUPS: i32 = 5;
 
         for _ in 0..NUM_PICKUPS {
@@ -193,6 +177,7 @@ impl MapBuilder {
             }
         }
 
+        // Add dead-end paths
         for _ in 0..10 {
             let start_x = rng.range(2, SCREEN_WIDTH - 2);
             let start_y = rng.range(2, SCREEN_HEIGHT - 2);
@@ -213,6 +198,25 @@ impl MapBuilder {
                 }
             }
         }
+
+        // Place exit LAST so it doesn't get overwritten
+        let mut max_dist = 0;
+        let mut farthest_idx = mb.rooms.len() - 1;
+
+        for (idx, room) in mb.rooms.iter().enumerate() {
+            let center = room.center();
+            let dist = DistanceAlg::Pythagoras.distance2d(mb.player_start, center) as i32;
+
+            if dist > max_dist {
+                max_dist = dist;
+                farthest_idx = idx;
+            }
+        }
+
+        mb.exit_pos = mb.rooms[farthest_idx].center();
+        let exit_idx = Map::xy_to_index(mb.exit_pos.x, mb.exit_pos.y);
+        mb.map.tiles[exit_idx].tile_type = TileType::Exit;
+
         mb
     }
 
@@ -268,13 +272,10 @@ impl GameState for State {
         match self {
             State::MainMenu => self.main_menu(ctx),
             State::Playing(playing_state) => {
-                // Call the static function, which no longer borrows self
                 let next_state = Self::player_input(ctx, playing_state);
 
-                // Draw the current frame
                 Self::play(playing_state, ctx);
 
-                // AFTER drawing, check if we need to change state for the NEXT frame
                 if let Some(new_state) = next_state {
                     *self = new_state;
                 }
@@ -315,7 +316,7 @@ impl State {
         }
     }
 
-    // The main game logic
+    //========= The main game logic ================
     fn play(playing_state: &mut PlayingState, ctx: &mut BTerm) {
         ctx.cls();
 
@@ -457,7 +458,7 @@ impl State {
                         }
 
                         if playing_state.map.tiles[new_idx].tile_type == TileType::Exit {
-                            if playing_state.depth == 3 {
+                            if playing_state.depth == 5 {
                                 return Some(State::Victory); //The Win Condition
                             } else {
                                 return Some(State::new_level(playing_state));
