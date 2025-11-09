@@ -64,6 +64,50 @@ impl Rect {
 }
 
 impl MapBuilder {
+    fn new() -> Self {
+        let mut mb = MapBuilder {
+            map: Map {
+                tiles: vec![
+                    Tile {
+                        tile_type: TileType::Wall,
+                        last_seen: -1000
+                    };
+                    (SCREEN_WIDTH * SCREEN_HEIGHT) as usize
+                ],
+            },
+            rooms: Vec::new(),
+            player_start: Point::zero(),
+            exit_pos: Point::zero(),
+        };
+
+        const MAX_ROOMS: i32 = 10;
+        const MIN_SIZE: i32 = 4;
+        const MAX_SIZE: i32 = 8;
+        let mut rng = RandomNumberGenerator::new();
+
+        for _ in 0..MAX_ROOMS {
+            let w = rng.range(MIN_SIZE, MAX_SIZE);
+            let h = rng.range(MIN_SIZE, MAX_SIZE);
+            let x = rng.range(1, SCREEN_WIDTH - w - 1);
+            let y = rng.range(1, SCREEN_HEIGHT - h - 1);
+            let new_rooms = Rect::new(x, y, w, h);
+
+            let mut ok: bool = true;
+            for other in mb.rooms.iter() {
+                if new_rooms.overlaps(other) {
+                    ok = false
+                }
+            }
+            if ok {
+                // TODO: Implement apply_room_to_map() method
+                // mb.apply_room_to_map();
+                mb.rooms.push(new_rooms);
+            }
+        }
+
+        mb
+    }
+
     fn find_farthest_exit(&self) -> Point {
         let mut farthest_distance = 0.0;
         let mut farthest_pos = Point::zero();
