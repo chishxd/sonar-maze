@@ -1,6 +1,6 @@
 use std::i32;
 
-use bracket_lib::prelude::{Algorithm2D, DistanceAlg, *};
+use bracket_lib::prelude::{Algorithm2D, *};
 
 const SCREEN_WIDTH: i32 = 40;
 const SCREEN_HEIGHT: i32 = 25;
@@ -100,8 +100,7 @@ impl MapBuilder {
                 }
             }
             if ok {
-                // TODO: Implement apply_room_to_map() method
-                // mb.apply_room_to_map();
+                mb.apply_room_to_map(&new_rooms);
                 mb.rooms.push(new_rooms);
             }
         }
@@ -111,12 +110,11 @@ impl MapBuilder {
         for i in 0..mb.rooms.len() - 1 {
             let room_a = mb.rooms[i];
             let room_b = mb.rooms[i + 1];
-            let center_a = mb.rooms[i].center();
-            let center_b = mb.rooms[i + 1].center();
+            let center_a = room_a.center();
+            let center_b = room_b.center();
 
-            // TODO: implement apply_horizontal and vertical_tunnels func
-            // mb.apply_horizontal_tunnel(center_a.x, center_b.x, center_a.y);
-            // mb.apply_vertical_tunnel(center_a.y, center_b.y, center_b.x);
+            mb.apply_horizontal_tunnel(center_a.x, center_b.x, center_a.y);
+            mb.apply_vertical_tunnel(center_a.y, center_b.y, center_b.x);
         }
 
         mb.player_start = mb.rooms[0].center();
@@ -137,25 +135,53 @@ impl MapBuilder {
         mb
     }
 
-    fn find_farthest_exit(&self) -> Point {
-        let mut farthest_distance = 0.0;
-        let mut farthest_pos = Point::zero();
-
-        for (idx, tile) in self.map.tiles.iter().enumerate() {
-            if tile.tile_type == TileType::Floor {
-                let x = idx % SCREEN_WIDTH as usize;
-                let y = idx / SCREEN_WIDTH as usize;
-                let pos = Point::new(x, y);
-
-                let distance = DistanceAlg::Pythagoras.distance2d(pos, self.player_start);
-                if distance > farthest_distance {
-                    farthest_distance = distance;
-                    farthest_pos = pos;
-                }
+    // Helper functions I added in TODO
+    fn apply_room_to_map(&mut self, room: &Rect) {
+        for y in room.y1 + 1..=room.y2 {
+            for x in room.x1 + 1..=room.x2 {
+                let idx = Map::xy_to_index(x, y);
+                self.map.tiles[idx].tile_type = TileType::Floor;
             }
         }
-        farthest_pos
     }
+
+    fn apply_horizontal_tunnel(&mut self, x1: i32, x2: i32, y: i32) {
+        for x in std::cmp::min(x1, x2)..=std::cmp::max(x1, x2) {
+            let idx = Map::xy_to_index(x, y);
+            if idx > 0 && idx < (SCREEN_WIDTH * SCREEN_HEIGHT) as usize {
+                self.map.tiles[idx].tile_type = TileType::Floor;
+            }
+        }
+    }
+
+    fn apply_vertical_tunnel(&mut self, y1: i32, y2: i32, x: i32) {
+        for y in std::cmp::min(y1, y2)..=std::cmp::max(y1, y2) {
+            let idx = Map::xy_to_index(x, y);
+            if idx > 0 && idx < (SCREEN_WIDTH * SCREEN_HEIGHT) as usize {
+                self.map.tiles[idx].tile_type = TileType::Floor;
+            }
+        }
+    }
+
+    // fn find_farthest_exit(&self) -> Point {
+    //     let mut farthest_distance = 0.0;
+    //     let mut farthest_pos = Point::zero();
+
+    //     for (idx, tile) in self.map.tiles.iter().enumerate() {
+    //         if tile.tile_type == TileType::Floor {
+    //             let x = idx % SCREEN_WIDTH as usize;
+    //             let y = idx / SCREEN_WIDTH as usize;
+    //             let pos = Point::new(x, y);
+
+    //             let distance = DistanceAlg::Pythagoras.distance2d(pos, self.player_start);
+    //             if distance > farthest_distance {
+    //                 farthest_distance = distance;
+    //                 farthest_pos = pos;
+    //             }
+    //         }
+    //     }
+    //     farthest_pos
+    // }
 }
 
 struct PlayingState {
