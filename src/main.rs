@@ -81,9 +81,9 @@ impl MapBuilder {
             exit_pos: Point::zero(),
         };
 
-        const MAX_ROOMS: i32 = 10;
-        const MIN_SIZE: i32 = 4;
-        const MAX_SIZE: i32 = 8;
+        const MAX_ROOMS: i32 = 15;
+        const MIN_SIZE: i32 = 3;
+        const MAX_SIZE: i32 = 6;
         let mut rng = RandomNumberGenerator::new();
 
         for _ in 0..MAX_ROOMS {
