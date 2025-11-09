@@ -10,6 +10,7 @@ enum TileType {
     Wall,
     Floor,
     Exit,
+    Pickup,
 }
 
 #[derive(PartialEq, Copy, Clone)]
@@ -80,6 +81,21 @@ impl MapBuilder {
         mb.exit_pos = mb.find_farthest_exit();
         let exit_idx = Map::xy_to_index(mb.exit_pos.x, mb.exit_pos.y);
         mb.map.tiles[exit_idx].tile_type = TileType::Exit;
+
+        //============= Logic for PickUp Items ======================
+        const MAX_PICKUPS: i32 = 5;
+        let mut placed_pickups = 0;
+
+        while placed_pickups < MAX_PICKUPS {
+            let x = rng.range(1, SCREEN_WIDTH - 2);
+            let y = rng.range(1, SCREEN_HEIGHT - 2);
+            let idx = Map::xy_to_index(x, y);
+
+            if mb.map.tiles[idx].tile_type == TileType::Floor {
+                mb.map.tiles[idx].tile_type = TileType::Pickup;
+                placed_pickups += 1;
+            }
+        }
 
         mb
     }
@@ -198,6 +214,9 @@ impl State {
                     TileType::Exit => {
                         ctx.set(x, py, MAGENTA, BLACK, to_cp437('>'));
                     }
+                    TileType::Pickup => {
+                        ctx.set(x, py, CYAN, BLACK, to_cp437('+'));
+                    }
                 }
             }
             y += 1;
@@ -304,6 +323,15 @@ impl State {
 
                         let new_idx =
                             Map::xy_to_index(playing_state.player_x, playing_state.player_y);
+
+                        let new_tile = &mut playing_state.map.tiles[new_idx];
+
+                        if new_tile.tile_type == TileType::Pickup {
+                            playing_state.pings_left += 1;
+
+                            new_tile.tile_type = TileType::Floor;
+                        }
+
                         if playing_state.map.tiles[new_idx].tile_type == TileType::Exit {
                             if playing_state.depth == 3 {
                                 return Some(State::Victory); //The Win Condition
