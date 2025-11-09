@@ -1,5 +1,3 @@
-use std::i32;
-
 use bracket_lib::prelude::{Algorithm2D, *};
 
 const SCREEN_WIDTH: i32 = 40;
@@ -117,6 +115,7 @@ impl MapBuilder {
             mb.apply_vertical_tunnel(center_a.y, center_b.y, center_b.x);
         }
 
+        // Looping Rooms
         for _ in 0..3 {
             let room_a_idx = rng.range(0, mb.rooms.len());
             let room_b_idx = rng.range(0, mb.rooms.len());
@@ -130,9 +129,56 @@ impl MapBuilder {
             }
         }
 
+        // Dead Ends
+        const MAX_WORM: i32 = 10;
+
+        for _ in 0..MAX_WORM {
+            let mut worm_pos;
+
+            loop {
+                let x = rng.range(1, SCREEN_WIDTH - 2);
+                let y = rng.range(1, SCREEN_HEIGHT - 2);
+                let idx = Map::xy_to_index(x, y);
+                if mb.map.tiles[idx].tile_type == TileType::Floor {
+                    worm_pos = Point::new(x, y);
+                    break;
+                }
+            }
+
+            let worm_len = rng.range(5, 15);
+            for _ in 0..worm_len {
+                let idx = Map::xy_to_index(worm_pos.x, worm_pos.y);
+                if mb.map.tiles[idx].tile_type == TileType::Wall {
+                    mb.map.tiles[idx].tile_type = TileType::Floor;
+                }
+            }
+
+            match rng.range(0, 4) {
+                0 => worm_pos.x -= 1,
+                1 => worm_pos.x += 1,
+                2 => worm_pos.y -= 1,
+                _ => worm_pos.y -= 1,
+            }
+
+            worm_pos.x = worm_pos.x.max(1).min(SCREEN_WIDTH - 2);
+        }
         // Placing exit, player's staring position and stuff
         mb.player_start = mb.rooms[0].center();
-        mb.exit_pos = mb.rooms.last().unwrap().center();
+
+        let mut max_dist = 0;
+        let mut farthest_idx = mb.rooms.len() - 1;
+
+        for (idx, room) in mb.rooms.iter().enumerate() {
+            let center = room.center();
+            let dist = DistanceAlg::Pythagoras.distance2d(mb.player_start, center) as i32;
+
+            if dist > max_dist {
+                max_dist = dist;
+                farthest_idx = idx;
+            }
+        }
+
+        mb.exit_pos = mb.rooms[farthest_idx].center();
         let exit_idx = Map::xy_to_index(mb.exit_pos.x, mb.exit_pos.y);
         mb.map.tiles[exit_idx].tile_type = TileType::Exit;
 
@@ -144,6 +190,27 @@ impl MapBuilder {
             let idx = Map::xy_to_index(x, y);
             if mb.map.tiles[idx].tile_type == TileType::Floor {
                 mb.map.tiles[idx].tile_type = TileType::Pickup;
+            }
+        }
+
+        for _ in 0..10 {
+            let start_x = rng.range(2, SCREEN_WIDTH - 2);
+            let start_y = rng.range(2, SCREEN_HEIGHT - 2);
+            let length = rng.range(3, 8);
+            let direction = rng.range(0, 4);
+
+            for i in 0..length {
+                let (x, y) = match direction {
+                    0 => (start_x + i, start_y),
+                    1 => (start_x - i, start_y),
+                    2 => (start_x, start_y + i),
+                    _ => (start_x, start_y - i),
+                };
+
+                if x > 0 && x < SCREEN_WIDTH - 1 && y > 0 && y < SCREEN_HEIGHT - 1 {
+                    let idx = Map::xy_to_index(x, y);
+                    mb.map.tiles[idx].tile_type = TileType::Floor;
+                }
             }
         }
         mb
@@ -252,7 +319,7 @@ impl State {
     fn play(playing_state: &mut PlayingState, ctx: &mut BTerm) {
         ctx.cls();
 
-        const REVEAL_DURATION: i32 = 20;
+        let reveal_duration = std::cmp::max(10, 20 - (playing_state.depth * 2));
 
         let mut y = 0;
 
@@ -260,7 +327,7 @@ impl State {
             let x = y % SCREEN_WIDTH;
             let py = y / SCREEN_WIDTH;
 
-            if playing_state.frame_time - tile.last_seen < REVEAL_DURATION {
+            if playing_state.frame_time - tile.last_seen < reveal_duration {
                 match tile.tile_type {
                     TileType::Floor => {
                         ctx.set(x, py, GHOSTWHITE, BLACK, to_cp437(' '));
@@ -349,7 +416,7 @@ impl State {
             exit_x: mb.exit_pos.x,
             exit_y: mb.exit_pos.y,
             frame_time: 0,
-            pings_left: playing_state.pings_left + 5,
+            pings_left: std::cmp::max(5, playing_state.pings_left - 2),
             depth: playing_state.depth + 1,
         };
 
@@ -429,7 +496,9 @@ impl State {
 
     fn reveal_map(playing_state: &mut PlayingState) {
         let player_pos = Point::new(playing_state.player_x, playing_state.player_y);
-        let fov = field_of_view(player_pos, 8, &playing_state.map);
+
+        let fov_radius = std::cmp::max(4, 8 - playing_state.depth);
+        let fov = field_of_view(player_pos, fov_radius, &playing_state.map);
 
         for point in fov.iter() {
             let idx = Map::xy_to_index(point.x, point.y);
