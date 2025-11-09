@@ -32,74 +32,38 @@ impl Map {
 
 struct MapBuilder {
     map: Map,
+    rooms: Vec<Rect>,
     player_start: Point,
     exit_pos: Point,
 }
 
-impl MapBuilder {
-    fn new() -> Self {
-        let mut mb = Self {
-            map: Map {
-                tiles: vec![
-                    Tile {
-                        tile_type: TileType::Wall,
-                        last_seen: -1000
-                    };
-                    SCREEN_WIDTH as usize * SCREEN_HEIGHT as usize
-                ],
-            },
-            player_start: Point::zero(), // Placeholder
-            exit_pos: Point::zero(),     // Placeholder
-        };
+struct Rect {
+    x1: i32,
+    y1: i32,
+    x2: i32,
+    y2: i32,
+}
 
-        // The Drunkard Walk
-        let mut rng = RandomNumberGenerator::new();
-        let mut drunkard_pos = Point::new(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
-        let mut floor_count = 0;
-
-        // Loop until 40% of map is Floors...
-        while floor_count < (SCREEN_WIDTH * SCREEN_HEIGHT) / 100 * 40 {
-            let idx = Map::xy_to_index(drunkard_pos.x, drunkard_pos.y);
-            if mb.map.tiles[idx].tile_type == TileType::Wall {
-                mb.map.tiles[idx].tile_type = TileType::Floor;
-                floor_count += 1;
-            }
-
-            // Move the drunkard
-            match rng.range(0, 4) {
-                0 => drunkard_pos.x -= 1,
-                1 => drunkard_pos.x += 1,
-                2 => drunkard_pos.y -= 1,
-                _ => drunkard_pos.y += 1,
-            }
-
-            // Prevent the drunkard from leaving the map
-            drunkard_pos.x = drunkard_pos.x.max(1).min(SCREEN_WIDTH - 2);
-            drunkard_pos.y = drunkard_pos.y.max(1).min(SCREEN_HEIGHT - 2);
+impl Rect {
+    pub fn new(x: i32, y: i32, w: i32, h: i32) -> Rect {
+        Rect {
+            x1: x,
+            y1: y,
+            x2: x + w,
+            y2: y + h,
         }
-        mb.player_start = Point::new(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
-        mb.exit_pos = mb.find_farthest_exit();
-        let exit_idx = Map::xy_to_index(mb.exit_pos.x, mb.exit_pos.y);
-        mb.map.tiles[exit_idx].tile_type = TileType::Exit;
-
-        //============= Logic for PickUp Items ======================
-        const MAX_PICKUPS: i32 = 5;
-        let mut placed_pickups = 0;
-
-        while placed_pickups < MAX_PICKUPS {
-            let x = rng.range(1, SCREEN_WIDTH - 2);
-            let y = rng.range(1, SCREEN_HEIGHT - 2);
-            let idx = Map::xy_to_index(x, y);
-
-            if mb.map.tiles[idx].tile_type == TileType::Floor {
-                mb.map.tiles[idx].tile_type = TileType::Pickup;
-                placed_pickups += 1;
-            }
-        }
-
-        mb
     }
 
+    pub fn overlaps(&self, other: &Rect) -> bool {
+        self.x1 <= other.x2 && self.x2 >= other.x1 && self.y1 <= other.y2 && self.y2 >= other.y1
+    }
+
+    pub fn center(&self) -> Point {
+        Point::new((self.x1 + self.x2) / 2, (self.y1 + self.y2) / 2)
+    }
+}
+
+impl MapBuilder {
     fn find_farthest_exit(&self) -> Point {
         let mut farthest_distance = 0.0;
         let mut farthest_pos = Point::zero();
