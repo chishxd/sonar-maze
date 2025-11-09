@@ -106,7 +106,7 @@ impl MapBuilder {
         }
 
         // Connect Rooms
-        mb.rooms.sort_by(|a, b| a.center().x.cmp(&b.center().x));
+        // mb.rooms.sort_by(|a, b| a.center().x.cmp(&b.center().x));
         for i in 0..mb.rooms.len() - 1 {
             let room_a = mb.rooms[i];
             let room_b = mb.rooms[i + 1];
