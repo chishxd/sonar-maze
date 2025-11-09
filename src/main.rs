@@ -47,8 +47,8 @@ impl MapBuilder {
                     SCREEN_WIDTH as usize * SCREEN_HEIGHT as usize
                 ],
             },
-            player_start: Point::zero(), // FIXME: Placeholder
-            exit_pos: Point::zero(),     // FIXME: Placeholder
+            player_start: Point::zero(), // Placeholder
+            exit_pos: Point::zero(),     // Placeholder
         };
 
         // The Drunkard Walk
@@ -113,6 +113,7 @@ struct PlayingState {
     exit_y: i32,
     frame_time: i32,
     pings_left: i32,
+    depth: i32,
 }
 
 enum State {
@@ -214,6 +215,7 @@ impl State {
         playing_state.frame_time += 1;
     }
 
+    //  ============ GAME OVER DISPLAY ==================
     fn game_over(&mut self, ctx: &mut BTerm) {
         ctx.cls();
         ctx.print_centered(5, "You are lost in the dark");
@@ -223,6 +225,8 @@ impl State {
             *self = State::new_game();
         }
     }
+
+    // ================= VICTORY DISPLAY ======================
 
     fn victory(&mut self, ctx: &mut BTerm) {
         ctx.cls();
@@ -245,9 +249,28 @@ impl State {
             exit_y: mb.exit_pos.y,
             frame_time: 0,
             pings_left: 15,
+            depth: 1,
         };
 
         State::Playing(playing_state)
+    }
+
+    // This function moves the game to next level
+    fn new_level(playing_state: &mut PlayingState) -> State {
+        let mb = MapBuilder::new();
+
+        let new_playing_state = PlayingState {
+            map: mb.map,
+            player_x: mb.player_start.x,
+            player_y: mb.player_start.y,
+            exit_x: mb.exit_pos.x,
+            exit_y: mb.exit_pos.y,
+            frame_time: 0,
+            pings_left: playing_state.pings_left + 5,
+            depth: playing_state.depth + 1,
+        };
+
+        State::Playing(new_playing_state)
     }
 
     fn player_input(ctx: &mut BTerm, playing_state: &mut PlayingState) -> Option<State> {
