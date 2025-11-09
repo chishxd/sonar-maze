@@ -203,7 +203,14 @@ impl State {
             y += 1;
         }
 
-        ctx.print(1, 1, format!("Pings Left: {}", playing_state.pings_left));
+        ctx.print(
+            1,
+            1,
+            format!(
+                "Depth: {} | Pings Left: {}",
+                playing_state.depth, playing_state.pings_left
+            ),
+        );
 
         ctx.set(
             playing_state.player_x,
@@ -298,7 +305,11 @@ impl State {
                         let new_idx =
                             Map::xy_to_index(playing_state.player_x, playing_state.player_y);
                         if playing_state.map.tiles[new_idx].tile_type == TileType::Exit {
-                            return Some(State::Victory); //The Win Condition
+                            if playing_state.depth == 3 {
+                                return Some(State::Victory); //The Win Condition
+                            } else {
+                                return Some(State::new_level(playing_state));
+                            }
                         }
                     }
 
