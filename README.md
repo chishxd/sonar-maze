@@ -3,13 +3,15 @@
 A maze game where you have to rely on sonar senses or you crash into depths of the sea.
 Built with Rust for Siege Hackclub
 
-<!-- TODO: Add a GIF -->
+[!demo](demo.gif)
 
 ## How To Play
-- `WASD` to move, `spacebar` to emit sonar
+- `ARROW KEYS` to move, `spacebar` to emit sonar
 - The sonar would show you route for a moment
 - Reach the exit before the fuel runs out!!
 - If you crash the wall, well you might meet those billionares :D
+
+You may press `TAB` to reveal whole level at once(only for debugging purposes)
 
 PS: Nothing spooky in this game so dw
 
@@ -26,5 +28,18 @@ It's less about moving on a grid and more about building one in your head. iykyk
 
 ## Installation
 
-Maybe.. Just `cargo add` it?? Let's see what I name the crate hehe
-<!-- FIXME: add proper crate name -->
+1. Clone this repo
+```git
+git clone https://github.com/chishxd/sonar-maze.git
+cd sonar-maze
+```
+
+2. Run the optimised build
+```shell
+cargo run --release
+```
+
+### Tech Stack
+- **Language:** Rust
+- **Engine/Library:** `bracket-lib`
+- **World Generation:** Custom Rooms-and-Corridors with A*-based exit placement.``
