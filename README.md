@@ -28,6 +28,11 @@ It's less about moving on a grid and more about building one in your head. iykyk
 
 ## Installation
 
+### The Easy Way
+Download binaries from [Releases](https://github.com/chishxd/sonar-maze/releases/tag/v.1.0.0)
+
+
+### The Hard Way
 1. Clone this repo
 ```git
 git clone https://github.com/chishxd/sonar-maze.git

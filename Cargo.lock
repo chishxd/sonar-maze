@@ -1560,6 +1560,7 @@ name = "sonar-maze"
 version = "0.1.0"
 dependencies = [
  "bracket-lib",
+ "once_cell",
 ]
 
 [[package]]
