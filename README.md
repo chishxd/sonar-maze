@@ -3,7 +3,7 @@
 A maze game where you have to rely on sonar senses or you crash into depths of the sea.
 Built with Rust for Siege Hackclub
 
-[!demo](demo.gif)
+![demo](demo.gif)
 
 ## How To Play
 - `ARROW KEYS` to move, `spacebar` to emit sonar
